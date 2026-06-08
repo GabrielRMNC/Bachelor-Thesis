@@ -1,364 +1,514 @@
 \documentclass[12pt, a4paper]{article}
+
+% ------------------------------------------------------------------
+%  PACKAGES
+% ------------------------------------------------------------------
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
+\usepackage[english]{babel}
 \usepackage{geometry}
-\geometry{
-    top=3cm,
-    bottom=3cm,
-    left=2.5cm,
-    right=2.5cm
-}
-\usepackage{xcolor}
-\usepackage{amsmath}  
+\geometry{top=3cm, bottom=3cm, left=2.5cm, right=2.5cm}
+\usepackage{setspace}
+\onehalfspacing                 % 1.5 line spacing (faculty requirement)
+\usepackage{amsmath}
 \usepackage{amssymb}
-\usepackage{listings}
+\usepackage{amsthm}
+\usepackage{xcolor}
 \usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{listings}
+\usepackage[hidelinks]{hyperref}
+
+% ------------------------------------------------------------------
+%  THEOREM-LIKE ENVIRONMENTS (numbered within sections, no proofs)
+% ------------------------------------------------------------------
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% ------------------------------------------------------------------
+%  MATLAB CODE STYLE
+% ------------------------------------------------------------------
+\definecolor{codegreen}{rgb}{0,0.55,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.96,0.96,0.96}
+\definecolor{codeblue}{rgb}{0,0,0.85}
+\lstdefinestyle{matlabstyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{codeblue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=6pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    frame=single,
+    language=Matlab
+}
+\lstset{style=matlabstyle}
 
 \begin{document}
+\pagenumbering{roman}   % front matter: i, ii, ... (body switches to arabic at the Introduction)
 
+% ==================================================================
+%  TITLE PAGE (English -- language of the specialization)
+% ==================================================================
 \begin{titlepage}
     \begin{center}
-        \textbf{BABEȘ-BOLYAI UNIVERSITY CLUJ-NAPOCA} \\[0.5cm]
+        \textbf{BABE\c{S}-BOLYAI UNIVERSITY CLUJ-NAPOCA} \\[0.5cm]
         \textbf{FACULTY OF MATHEMATICS AND COMPUTER SCIENCE} \\[0.5cm]
-        \textbf{SPECIALIZATION MATHEMATICS-COMPUTER SCIENCE}
-        
-        \vspace*{6cm} 
-        
+        \textbf{SPECIALIZATION MATHEMATICS--COMPUTER SCIENCE}
+
+        \vspace*{6cm}
+
         {\LARGE \textbf{DIPLOMA THESIS}} \\[2cm]
-        
+
         {\Large \textbf{Function Interpolation}}
-        
     \end{center}
-    
-    \vspace*{4cm} 
-    
+
+    \vspace*{4cm}
+
     \noindent
     \begin{minipage}[t]{0.7\textwidth}
         \textbf{Supervisor} \\[0.5cm]
-        \textcolor{red}{\textbf{Dr. LŐRINCZI Ábel, Asistent Universitar}}
+        \textbf{Dr. \'Abel L\H{O}RINCZI, Teaching Assistant}
     \end{minipage}%
     \begin{minipage}[t]{0.3\textwidth}
-        \vspace*{1.5cm} 
+        \vspace*{1.5cm}
         \raggedleft
-        \textit{Author \\ Romanică Gabriel}
+        \textit{Author \\ Romanic\u{a} Gabriel}
     \end{minipage}
-    
+
     \vfill
-    
     \begin{center}
         \textbf{2026}
     \end{center}
 \end{titlepage}
 
+
+
+% ==================================================================
+%  ABSTRACT
+% ==================================================================
 \newpage
 \renewcommand{\abstractname}{Abstract}
 \begin{abstract}
-    The approximation of functions through polynomials is a foundational concept in numerical analysis, essential for evaluating complex functions using standard arithmetic operations. This thesis explores the mathematical theory and practical implementation of polynomial interpolation, focusing on the critical transition from equidistant to optimal node distribution. We begin by detailing the classical and barycentric forms of Lagrange interpolation, followed by Newton's method using divided and finite differences. 
+The approximation of functions through polynomials is a foundational concept in numerical analysis, essential for evaluating complex functions using only the elementary arithmetic operations. This thesis explores the mathematical theory and the practical implementation of polynomial interpolation, focusing on the critical transition from equidistant to optimally distributed nodes. We begin by presenting the classical and the barycentric forms of Lagrange interpolation, followed by Newton's method using divided differences and finite (forward/backward) differences. Each method is accompanied by detailed worked examples carried out by hand.
 
-The core of the paper investigates Runge's phenomenon, demonstrating how high-degree polynomial interpolation on equally spaced nodes leads to catastrophic divergence. To resolve this numerical instability, Chebyshev nodes are introduced and mathematically justified through their minimax error properties. Finally, original MATLAB simulations are presented to practically validate the theoretical claims, using Newton's divided differences to explicitly contrast the unbounded error of equidistant nodes with the convergent stability of Chebyshev nodes.
+The core of the paper investigates Runge's phenomenon, demonstrating how high-degree polynomial interpolation on equally spaced nodes leads to catastrophic divergence near the endpoints of the interval. To resolve this numerical instability, Chebyshev nodes are introduced and mathematically justified through their minimax (sup-norm minimizing) property. Finally, original MATLAB simulations are presented to validate the theoretical claims: using exclusively Newton's divided differences, we contrast the unbounded error obtained with equidistant nodes against the steady convergence obtained with Chebyshev nodes for the Runge function.
 \end{abstract}
 
 \newpage
-
 \tableofcontents
 
+% ==================================================================
+%  1. INTRODUCTION
+% ==================================================================
 \newpage
+\pagenumbering{arabic}   % body starts at page 1
 \section{Introduction}
 
-The ability to approximate complex mathematical functions using simpler, computable formulas is a cornerstone of numerical analysis and scientific computing. In practice, many functions encountered in engineering, physics, and computer science cannot be evaluated exactly. Interpolation provides a robust mechanism to construct a known function---typically a polynomial---that exactly matches a discrete set of data points, allowing for highly accurate approximations of the underlying unknown function.
+The ability to approximate complex mathematical functions using simpler, computable formulas is a cornerstone of numerical analysis and scientific computing. In practice, many functions encountered in engineering, physics, and computer science cannot be evaluated exactly; even elementary functions such as $\sqrt{x}$, $e^{x}$, $\log x$ and the trigonometric functions ultimately have to be reduced, on a computer, to the four arithmetic operations $+,\,-,\,\times,\,\div$. Combining these operations means that we can directly evaluate only polynomials and rational functions, so all other functions must be approximated by them \cite{micula4}. Interpolation provides a robust mechanism to construct a known function---typically a polynomial---that matches a discrete set of data points exactly, allowing for accurate approximations of the underlying unknown function.
 
-The primary objective of this thesis is to explore the theoretical foundations of polynomial interpolation, examine its inherent numerical limitations, and demonstrate the optimal methods for achieving stable approximations. The paper is structured to guide the reader from classical definitions to practical computational implementations.
+The primary objective of this thesis is to explore the theoretical foundations of polynomial interpolation, examine its inherent numerical limitations, and demonstrate the methods that yield stable approximations. The paper is structured to guide the reader from classical definitions to practical computational implementations.
 
-Chapter 2 introduces Lagrange interpolation, covering both its classical theoretical form and the highly efficient barycentric formulation. Chapter 3 transitions to Newton's method, detailing divided differences and the forward and backward finite difference formulas, which offer significant computational advantages when adding new data points. 
-
-Chapter 4 highlights a fundamental limitation in numerical approximation known as Runge's phenomenon, illustrating how increasing the degree of an interpolating polynomial on equidistant nodes paradoxically leads to massive divergence and error accumulation, particularly near the boundaries of an interval. Chapter 5 introduces the mathematical cure to this problem: Chebyshev nodes. By utilizing the roots of Chebyshev polynomials, we demonstrate how the interpolation error is minimized, ensuring convergence.
-
-Finally, Chapter 6 presents practical applications. Using custom MATLAB implementations of the interpolation algorithms, we perform numerical simulations that explicitly compare the error rates of equidistant nodes against Chebyshev nodes, proving the theoretical claims discussed in the preceding chapters.
+Chapter 2 introduces Lagrange interpolation, covering both its classical theoretical form and the computationally efficient barycentric formulation. Chapter 3 transitions to Newton's method, detailing divided differences and the forward and backward finite-difference formulas, which offer significant advantages when nodes are equidistant or when new data points are added. Chapter 4 highlights a fundamental limitation of polynomial interpolation, Runge's phenomenon, illustrating how increasing the degree of the interpolant on equidistant nodes paradoxically leads to massive divergence near the boundaries of the interval. Chapter 5 introduces the mathematical cure for this problem: Chebyshev nodes. By using the roots of Chebyshev polynomials, we show how the dominant factor in the interpolation error is minimized, restoring convergence. Finally, Chapter 6 presents practical applications: using custom MATLAB implementations, we perform numerical simulations that explicitly compare the error of equidistant nodes against that of Chebyshev nodes, confirming the theoretical claims of the preceding chapters.
 
 
+
+
+% ==================================================================
+%  2. LAGRANGE INTERPOLATION
+% ==================================================================
 \newpage
 \section{Lagrange Interpolation}
 
-Approximation of functions is one of the most important tasks in Numerical Analysis. Most functions encountered in mathematical problems and applications cannot be evaluated exactly, even though we usually handle them as if they were completely known quantities \cite{course4}. Interpolation provides a method to find a computable function---usually a polynomial---whose graph goes through a given set of data points.
+Approximation of functions is one of the most important tasks in numerical analysis. Most functions encountered in mathematical problems and applications cannot be evaluated exactly, even though we usually treat them as if they were completely known quantities \cite{micula4}. Interpolation provides a method to find a computable function---usually a polynomial---whose graph passes through a given set of data points.
+
+\paragraph{Historical note.} Although the formula carries the name of Joseph-Louis Lagrange (1736--1813), who published it in 1795, equivalent constructions were known earlier to Edward Waring (1779) and Leonhard Euler. The barycentric reformulation discussed below is modern and was popularized in numerical practice by Berrut and Trefethen \cite{berrut}.
 
 \subsection{Classical Lagrange Form}
 
-Given $n+1$ distinct points, called \textit{nodes}, $x_i \in [a,b]$ for $i = 0, \dots, n$, and the values $f(x_i) = y_i$ of an unknown function $f: [a,b] \rightarrow \mathbb{R}$, the goal is to find a polynomial $P(x)$ of minimum degree that satisfies the interpolation conditions:
-\begin{equation}
-    P(x_i) = f(x_i), \quad i = 0, \dots, n
+\begin{definition}[Interpolation problem]
+Given $n+1$ distinct points, called \emph{nodes}, $x_i \in [a,b]$ for $i = 0, \dots, n$, and the values $f(x_i) = y_i$ of an unknown function $f: [a,b] \rightarrow \mathbb{R}$, we seek a polynomial $P(x)$ of minimum degree that satisfies the interpolation conditions
+\begin{equation}\label{eq:interp-cond}
+    P(x_i) = f(x_i), \qquad i = 0, \dots, n .
 \end{equation}
+\end{definition}
 
-\vspace{0.5cm}
-\noindent \textbf{Theorem 2.1 (Existence and Uniqueness).} \textit{There is a unique polynomial $L_n f$ of degree at most $n$, satisfying the interpolation conditions. This polynomial can be written as:}
-\begin{equation}
-    L_n f(x) = \sum_{i=0}^n l_i(x) f(x_i)
+\begin{theorem}[Existence and Uniqueness]\label{thm:exist}
+There is a unique polynomial $L_n f$ of degree at most $n$ satisfying the interpolation conditions \eqref{eq:interp-cond}. This polynomial can be written as
+\begin{equation}\label{eq:lagrange}
+    L_n f(x) = \sum_{i=0}^n l_i(x)\, f(x_i),
 \end{equation}
-\textit{where $l_i(x)$ are the Lagrange fundamental (basis) polynomials, defined as:}
-\begin{equation}
-    l_i(x) = \prod_{\substack{j=0 \\ j \neq i}}^n \frac{x - x_j}{x_i - x_j}
+where $l_i(x)$ are the Lagrange fundamental (basis) polynomials, defined as
+\begin{equation}\label{eq:basis}
+    l_i(x) = \prod_{\substack{j=0 \\ j \neq i}}^n \frac{x - x_j}{x_i - x_j}.
 \end{equation}
+\end{theorem}
 
-\vspace{0.5cm}
-\noindent \textbf{Example: Linear Interpolation.} Consider two distinct nodes $(x_0, y_0)$ and $(x_1, y_1)$. The polynomial of degree 1 that interpolates this data is:
-\begin{equation}
-    P_1(x) = \frac{x - x_1}{x_0 - x_1} y_0 + \frac{x - x_0}{x_1 - x_0} y_1
-\end{equation}
-For instance, to interpolate $f(x) = \sqrt{x}$ at nodes $x_0 = 1$ and $x_1 = 4$, substituting the values yields $P_1(x) = \frac{1}{3}x + \frac{2}{3}$.
+The basis polynomials satisfy the property $l_i(x_j) = \delta_{ij}$ (equal to $1$ if $i=j$ and $0$ otherwise), which makes it immediate that \eqref{eq:lagrange} reproduces the data values $f(x_i)$.
 
-While the polynomial matches the function exactly at the interpolation nodes, an error exists at all other points within the interval.
-
-\vspace{0.5cm}
-\noindent \textbf{Theorem 2.2 (Interpolation Error).} \textit{Let $f \in C^{n+1}[a,b]$ and consider the distinct nodes $x_0, \dots, x_n \in [a,b]$. Then there exists a $\xi \in (a,b)$ such that the interpolation remainder is:}
+\begin{example}[Linear interpolation]
+Consider two distinct nodes $(x_0, y_0)$ and $(x_1, y_1)$. The polynomial of degree $1$ that interpolates this data is
 \begin{equation}
-    (R_n f)(x) = f(x) - (L_n f)(x) = \frac{u(x)}{(n+1)!} f^{(n+1)}(\xi)
+    P_1(x) = \frac{x - x_1}{x_0 - x_1}\, y_0 + \frac{x - x_0}{x_1 - x_0}\, y_1 .
 \end{equation}
-\textit{where $u(x) = (x - x_0)(x - x_1) \dots (x - x_n)$.}
+For instance, to interpolate $f(x) = \sqrt{x}$ at the nodes $x_0 = 1$ and $x_1 = 4$ (so $y_0=1,\ y_1=2$), substituting the values yields
+\[
+P_1(x) = \frac{x-4}{1-4}\cdot 1 + \frac{x-1}{4-1}\cdot 2
+       = \frac{-(x-4) + 2(x-1)}{3} = \frac{1}{3}x + \frac{2}{3}.
+\]
+\end{example}
+
+While the polynomial matches the function exactly at the interpolation nodes, an error exists at all other points within the interval. This error is described by the following classical result.
+
+\begin{theorem}[Interpolation Error]\label{thm:error}
+Let $f \in C^{n+1}[a,b]$ and consider the distinct nodes $x_0, \dots, x_n \in [a,b]$. Then for every $x \in [a,b]$ there exists a point $\xi \in (a,b)$ such that the interpolation remainder is
+\begin{equation}\label{eq:remainder}
+    (R_n f)(x) = f(x) - (L_n f)(x) = \frac{u(x)}{(n+1)!}\, f^{(n+1)}(\xi),
+\end{equation}
+where $u(x) = (x - x_0)(x - x_1) \cdots (x - x_n)$ is the nodal polynomial.
+\end{theorem}
+
+A useful consequence of \eqref{eq:remainder} is the uniform bound
+\begin{equation}\label{eq:errorbound}
+    |(R_n f)(x)| \le \frac{|u(x)|}{(n+1)!}\, M_{n+1}, \qquad
+    M_{n+1} = \sup_{t\in[a,b]} \bigl|f^{(n+1)}(t)\bigr| .
+\end{equation}
+The two factors on the right-hand side are essentially independent: the first depends only on the placement of the nodes through $u(x)$, while the second depends only on the function $f$. This separation will be the key to understanding both Runge's phenomenon (Chapter 4) and its cure through Chebyshev nodes (Chapter 5).
 
 \subsection{Barycentric Interpolation}
 
-The classical Lagrange formula is highly useful for theoretical proofs, but it is less desirable for practical computations \cite{course4}. Evaluating it requires $\mathcal{O}(n^2)$ floating-point operations for every value of $x$, and adding a new node requires restarting the calculation from scratch.
+The classical Lagrange formula is well suited for theoretical purposes, but it is less desirable for practical computation \cite{micula4}. Evaluating it requires $\mathcal{O}(n^2)$ floating-point operations for every value of $x$, adding a new node requires restarting the calculation from scratch, and the procedure is numerically unstable.
 
-To improve computational efficiency, we introduce \textit{barycentric weights}:
-\begin{equation}
-    w_i = \frac{1}{\prod_{\substack{j=0 \\ j \neq i}}^n (x_i - x_j)}, \quad i = 0, 1, \dots, n
+To improve efficiency, we introduce the \emph{barycentric weights}
+\begin{equation}\label{eq:weights}
+    w_i = \frac{1}{\displaystyle\prod_{\substack{j=0 \\ j \neq i}}^n (x_i - x_j)}, \qquad i = 0, 1, \dots, n .
 \end{equation}
-
-Using these weights, the polynomial can be expressed in the \textbf{First Barycentric Formula}:
-\begin{equation}
-    L_n f(x) = u(x) \sum_{i=0}^n \frac{w_i}{x - x_i} f_i
+Using these weights, the interpolant can first be written in the \textbf{first barycentric formula}
+\begin{equation}\label{eq:bary1}
+    L_n f(x) = u(x) \sum_{i=0}^n \frac{w_i}{x - x_i}\, f_i .
 \end{equation}
-Once the weights are computed, evaluating $L_n f(x)$ requires only $\mathcal{O}(n)$ operations, and adding a new node updates the weights efficiently.
-
-Furthermore, by applying the principle that the Lagrange polynomial for the constant function $f(x) \equiv 1$ is exactly $1$, we obtain the \textbf{Second Barycentric Formula}:
-\begin{equation}
-    L_n f(x) = \frac{\sum_{i=0}^n \frac{w_i}{x - x_i} f_i}{\sum_{i=0}^n \frac{w_i}{x - x_i}}
+Once the weights are known, evaluating $L_n f(x)$ requires only $\mathcal{O}(n)$ operations, and adding a new node updates the weights cheaply. Applying \eqref{eq:bary1} to the constant function $f \equiv 1$, whose interpolant is $1$ by uniqueness, gives $1 = u(x)\sum_i w_i/(x-x_i)$. Dividing \eqref{eq:bary1} by this identity eliminates $u(x)$ and yields the \textbf{second barycentric formula}
+\begin{equation}\label{eq:bary2}
+    L_n f(x) = \frac{\displaystyle\sum_{i=0}^n \frac{w_i}{x - x_i}\, f_i}{\displaystyle\sum_{i=0}^n \frac{w_i}{x - x_i}} .
 \end{equation}
-This formula is highly advantageous because any common factors within the weights $w_i$ can be canceled without altering the final polynomial evaluation \cite{course4}.
-\vspace{0.5cm}
+This form is particularly elegant: the weights appear identically in the numerator and denominator (except for the factors $f_i$), so any common factor in all the weights $w_i$ may be canceled without changing the value of $L_n f$ \cite{micula4, berrut}. This property is exploited in Chapter 5.
 
-\noindent \textbf{Example: Second Barycentric Formula by Hand.}
-Let us interpolate the function $f(x) = x^2$ using three nodes: $x_0 = 0, x_1 = 1, x_2 = 2$. The corresponding function values are $f_0 = 0, f_1 = 1, f_2 = 4$. We want to evaluate the polynomial at $x = 1.5$.
+\begin{example}[Second barycentric formula, by hand]\label{ex:bary}
+Let us interpolate $f(x) = x^2$ using the three nodes $x_0 = 0,\ x_1 = 1,\ x_2 = 2$, with values $f_0 = 0,\ f_1 = 1,\ f_2 = 4$, and evaluate the result at $x = 1.5$.
 
-First, we calculate the barycentric weights $w_i = \prod_{j \neq i} (x_i - x_j)^{-1}$:
+\medskip
+\noindent\textit{Step 1 --- barycentric weights} from \eqref{eq:weights}:
 \begin{align*}
-    w_0 &= \frac{1}{(0 - 1)(0 - 2)} = \frac{1}{2} \\
-    w_1 &= \frac{1}{(1 - 0)(1 - 2)} = -1 \\
-    w_2 &= \frac{1}{(2 - 0)(2 - 1)} = \frac{1}{2}
+    w_0 &= \frac{1}{(0 - 1)(0 - 2)} = \frac{1}{2}, \\
+    w_1 &= \frac{1}{(1 - 0)(1 - 2)} = -1, \\
+    w_2 &= \frac{1}{(2 - 0)(2 - 1)} = \frac{1}{2}.
 \end{align*}
 
-Next, we compute the terms $\frac{w_i}{x - x_i}$ for $x = 1.5$:
+\noindent\textit{Step 2 --- the terms} $\dfrac{w_i}{x - x_i}$ at $x = 1.5$:
 \begin{align*}
-    i=0&: \quad \frac{1/2}{1.5 - 0} = \frac{1}{3} \\
-    i=1&: \quad \frac{-1}{1.5 - 1} = -2 \\
-    i=2&: \quad \frac{1/2}{1.5 - 2} = -1
+    i=0&: \quad \frac{1/2}{\,1.5 - 0\,} = \frac{1}{3}, &
+    i=1&: \quad \frac{-1}{\,1.5 - 1\,} = -2, &
+    i=2&: \quad \frac{1/2}{\,1.5 - 2\,} = -1 .
 \end{align*}
 
-Finally, we apply the Second Barycentric Formula:
-\begin{equation}
-    L_2(1.5) = \frac{\sum \frac{w_i}{x - x_i} f_i}{\sum \frac{w_i}{x - x_i}} = \frac{\frac{1}{3}(0) + (-2)(1) + (-1)(4)}{\frac{1}{3} - 2 - 1} = \frac{-6}{-8/3} = 2.25
-\end{equation}
-This perfectly matches the exact function evaluation $f(1.5) = 1.5^2 = 2.25$.
+\noindent\textit{Step 3 --- the second barycentric formula} \eqref{eq:bary2}:
+\begin{equation*}
+    L_2(1.5) = \frac{\frac{1}{3}(0) + (-2)(1) + (-1)(4)}{\frac{1}{3} + (-2) + (-1)}
+             = \frac{-6}{-8/3} = \frac{18}{8} = 2.25 .
+\end{equation*}
+This matches the exact value $f(1.5) = 1.5^2 = 2.25$ exactly, as it must, since the unique quadratic interpolant of three points sampled from a quadratic is the quadratic itself.
+\end{example}
+
 \subsection{Implementation Notes}
 
-When implementing the Second Barycentric Formula programmatically (e.g., in MATLAB), a critical edge case must be managed. The interpolation polynomial is undefined when $x$ exactly matches one of the nodes $x_i$, due to a division by zero in both the numerator and denominator \cite{course4}. 
+When implementing the second barycentric formula \eqref{eq:bary2} programmatically, one critical edge case must be handled. The expression is formally undefined when $x$ exactly equals one of the nodes $x_i$, because the term $w_i/(x-x_i)$ produces a division by zero in both the numerator and the denominator \cite{micula4}. Mathematically, an application of L'H\^opital's rule shows that the limit as $x \to x_i$ equals exactly $f(x_i)$, so a continuous extension to the nodes is justified. A robust implementation must therefore check whether $x$ coincides with a node (within machine-precision tolerance) and, if so, return the corresponding value $f(x_i)$ directly. The MATLAB function presented in Chapter 6 implements precisely this safeguard.
 
-Mathematically, the limit as $x \to x_i$ is exactly $f(x_i)$. Therefore, a robust implementation must explicitly check if $x$ is equivalent to a node $x_i$ (within machine precision tolerance) and immediately return the corresponding function value $f(x_i)$ to ensure continuous extension.
-
+% ==================================================================
+%  3. NEWTON INTERPOLATION
+% ==================================================================
 \newpage
 \section{Newton Interpolation}
 
-While the Lagrange form elegantly proves the existence and uniqueness of the interpolation polynomial, it has a significant computational drawback: if a new data point is added, the entire polynomial must be recalculated from scratch \cite{course5, runge}. Newton's interpolation method resolves this by expressing the polynomial in a hierarchical form, where adding a new node simply requires adding a new term to the existing polynomial without altering the previously calculated coefficients.
+While the Lagrange form elegantly proves the existence and uniqueness of the interpolation polynomial, it has a significant computational drawback: if a new data point is added, the entire polynomial must be recomputed from scratch \cite{micula5, runge}. Newton's interpolation method resolves this by expressing the polynomial in a hierarchical form, in which adding a new node simply appends a new term without altering the previously computed coefficients.
+
+\paragraph{Historical note.} The method originates with Isaac Newton (1643--1727), who developed both the divided-difference formula for unequally spaced data and the forward/backward finite-difference formulas for tabulated values with a constant step. These finite-difference tables were a central computational tool for centuries before the advent of electronic computers.
 
 \subsection{Divided Differences}
 
-Newton's interpolation polynomial relies on the concept of \textit{divided differences}. Given $n+1$ pairs of points $(x_k, y_k)$ for $k = 0, \dots, n$, the divided differences are defined recursively as follows \cite{runge}:
-
+Newton's interpolation polynomial relies on the concept of \emph{divided differences}. Given $n+1$ pairs $(x_k, y_k)$ for $k = 0, \dots, n$, the divided differences are defined recursively as follows \cite{runge, micula5}:
 \begin{itemize}
-    \item \textbf{Zeroth-order:} $f[x_k] = f(x_k) = y_k$
-    \item \textbf{First-order:} $f[x_k, x_{k+1}] = \frac{f[x_{k+1}] - f[x_k]}{x_{k+1} - x_k}$
-    \item \textbf{i-th order:} $f[x_k, x_{k+1}, \dots, x_{k+i}] = \frac{f[x_{k+1}, \dots, x_{k+i}] - f[x_k, \dots, x_{k+i-1}]}{x_{k+i} - x_k}$
+    \item \textbf{Zeroth order:} $f[x_k] = f(x_k) = y_k$;
+    \item \textbf{First order:} $\displaystyle f[x_k, x_{k+1}] = \frac{f[x_{k+1}] - f[x_k]}{x_{k+1} - x_k}$;
+    \item \textbf{$i$-th order:} $\displaystyle f[x_k, \dots, x_{k+i}] = \frac{f[x_{k+1}, \dots, x_{k+i}] - f[x_k, \dots, x_{k+i-1}]}{x_{k+i} - x_k}$.
 \end{itemize}
 
-Using these coefficients, Newton's interpolation polynomial $N_n f(x)$ of degree at most $n$ is written as \cite{course5, runge}:
-\begin{equation}
-    N_n f(x) = f[x_0] + \sum_{i=1}^n f[x_0, \dots, x_i] \prod_{j=0}^{i-1} (x - x_j)
+Using these coefficients, Newton's interpolation polynomial $N_n f(x)$ of degree at most $n$ is
+\begin{equation}\label{eq:newton}
+    N_n f(x) = f[x_0] + \sum_{i=1}^n f[x_0, \dots, x_i] \prod_{j=0}^{i-1} (x - x_j).
 \end{equation}
+By the uniqueness of the interpolation polynomial (Theorem~\ref{thm:exist}), $N_n f(x)$ is identical to the Lagrange polynomial $L_n f(x)$ for the same set of nodes; the two are merely written in different algebraic forms \cite{micula5}.
 
-By the uniqueness of the interpolation polynomial, $N_n f(x)$ is mathematically equivalent to the Lagrange polynomial $L_n f(x)$ for the same set of nodes, merely expressed in a different algebraic form \cite{course5}.
-
-\vspace{0.5cm}
-\noindent \textbf{Theorem 3.1 (Interpolation Error for Newton's Form).} \textit{The remainder (error) of the Newton interpolation polynomial is given by:}
+\begin{theorem}[Interpolation error, Newton's form]\label{thm:newton-error}
+The remainder of the Newton interpolation polynomial can be written, using a divided difference that includes the evaluation point $x$, as
 \begin{equation}
-    R_n f(x) = \frac{f^{(n+1)}(\xi)}{(n+1)!} (x - x_0)(x - x_1) \dots (x - x_n)
+    R_n f(x) = f[x, x_0, \dots, x_n]\,(x - x_0)(x - x_1) \cdots (x - x_n),
 \end{equation}
-\textit{where $\xi$ lies in the smallest interval containing the nodes $x_0, \dots, x_n$ and the point $x$ \cite{course5}.}
+which, for $f \in C^{n+1}$, coincides with the remainder \eqref{eq:remainder} of Theorem~\ref{thm:error}, where $\xi$ lies in the smallest interval containing the nodes $x_0, \dots, x_n$ and the point $x$ \cite{micula5}.
+\end{theorem}
 
-\vspace{0.5cm}
-\noindent \textbf{Example: Divided Differences by Hand.}
-Let us interpolate $f(x) = x^3$ at the nodes $x_0 = 0, x_1 = 1, x_2 = 2, x_3 = 3$. The function values are $0, 1, 8, 27$. We construct the divided difference table:
+\begin{example}[Divided differences, by hand --- equidistant nodes]\label{ex:dd1}
+Let us interpolate $f(x) = x^3$ at the nodes $x_0 = 0,\ x_1 = 1,\ x_2 = 2,\ x_3 = 3$, with function values $0, 1, 8, 27$. We construct the divided-difference table; each entry is the difference of the two entries immediately to its left, divided by the difference of the corresponding outermost nodes.
 
 \begin{center}
-\begin{tabular}{c|c|ccc}
-$x_k$ & $f[x_k]$ & 1st Order & 2nd Order & 3rd Order \\
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{c|c|c|c|c}
+$x_k$ & $f[x_k]$ & 1st order & 2nd order & 3rd order \\
 \hline
-0 & 0  &                 &                 & \\
-  &    & $\frac{1-0}{1-0}=1$ &                 & \\
-1 & 1  &                 & $\frac{7-1}{2-0}=3$ & \\
-  &    & $\frac{8-1}{2-1}=7$ &                 & $\frac{6-3}{3-0}=1$ \\
-2 & 8  &                 & $\frac{19-7}{3-1}=6$ & \\
-  &    & $\frac{27-8}{3-2}=19$ &               & \\
-3 & 27 &                 &                 & \\
+$0$ & $0$  &                       &                         & \\
+    &      & $\frac{1-0}{1-0}=1$   &                         & \\
+$1$ & $1$  &                       & $\frac{7-1}{2-0}=3$     & \\
+    &      & $\frac{8-1}{2-1}=7$   &                         & $\frac{6-3}{3-0}=1$ \\
+$2$ & $8$  &                       & $\frac{19-7}{3-1}=6$    & \\
+    &      & $\frac{27-8}{3-2}=19$ &                         & \\
+$3$ & $27$ &                       &                         & \\
 \end{tabular}
 \end{center}
 
-The coefficients for Newton's polynomial are the top edge of the table: $D_0=0, D_1=1, D_2=3, D_3=1$. The polynomial is:
-\begin{equation}
-    N_3(x) = 0 + 1(x-0) + 3(x-0)(x-1) + 1(x-0)(x-1)(x-2)
-\end{equation}
-Evaluating at $x = 1.5$ yields $1.5 + 3(1.5)(0.5) + (1.5)(0.5)(-0.5) = 1.5 + 2.25 - 0.375 = 3.375$, matching $1.5^3 = 3.375$.
+The Newton coefficients are the topmost entry in each column: $D_0 = 0,\ D_1 = 1,\ D_2 = 3,\ D_3 = 1$. Hence
+\begin{equation*}
+    N_3(x) = 0 + 1\,(x) + 3\,(x)(x-1) + 1\,(x)(x-1)(x-2),
+\end{equation*}
+which expands exactly to $x^3$. Evaluating at $x = 1.5$,
+\[
+N_3(1.5) = 1.5 + 3(1.5)(0.5) + (1.5)(0.5)(-0.5) = 1.5 + 2.25 - 0.375 = 3.375 = 1.5^3 .
+\]
+\end{example}
+
+\begin{example}[Divided differences, by hand --- non-equidistant nodes]\label{ex:dd2}
+A major advantage of divided differences over the finite-difference formulas below is that the nodes need not be equally spaced. We interpolate $f(x) = \sqrt{x}$ at the nodes $x_0 = 1,\ x_1 = 4,\ x_2 = 9$, with values $1, 2, 3$:
+\begin{align*}
+    f[x_0, x_1] &= \frac{2-1}{4-1} = \frac{1}{3}, &
+    f[x_1, x_2] &= \frac{3-2}{9-4} = \frac{1}{5}, \\[2pt]
+    f[x_0, x_1, x_2] &= \frac{\tfrac{1}{5}-\tfrac{1}{3}}{9-1} = \frac{-2/15}{8} = -\frac{1}{60}. &&
+\end{align*}
+The Newton polynomial is
+\[
+    N_2(x) = 1 + \tfrac{1}{3}(x-1) - \tfrac{1}{60}(x-1)(x-4) = -\tfrac{1}{60}x^2 + \tfrac{5}{12}x + \tfrac{3}{5}.
+\]
+As a check, $N_2(9) = -\tfrac{81}{60} + \tfrac{45}{12} + \tfrac{3}{5} = 3 = \sqrt{9}$, and at the off-node point $x=2$ we obtain $N_2(2) = \tfrac{41}{30} \approx 1.3667$, a reasonable approximation of $\sqrt{2} \approx 1.4142$.
+\end{example}
 
 \subsection{Forward and Backward Differences}
 
-When the interpolation nodes are equally spaced (equidistant), such that $x_i = x_0 + ih$ for a constant step size $h$, computing divided differences becomes unnecessary. Instead, the polynomial can be constructed using simpler finite differences \cite{course5}.
+When the interpolation nodes are equally spaced, with $x_i = x_0 + i h$ for a constant step size $h$, computing general divided differences is unnecessary; the polynomial can be built from simpler \emph{finite differences} \cite{micula5}.
 
-\textbf{Newton's Forward Difference Formula} uses the forward difference operator $\Delta^k f_i = \Delta^{k-1} f_{i+1} - \Delta^{k-1} f_i$. By substituting $s = \frac{x - x_0}{h}$, the polynomial takes the form \cite{course5}:
-\begin{equation}
-    L_n f(x) = f_0 + \binom{s}{1}\Delta f_0 + \binom{s}{2}\Delta^2 f_0 + \dots + \binom{s}{n}\Delta^n f_0
+\textbf{Newton's forward-difference formula} uses the forward-difference operator $\Delta^k f_i = \Delta^{k-1} f_{i+1} - \Delta^{k-1} f_i$, with $\Delta^0 f_i = f_i$. Substituting $s = (x - x_0)/h$, the interpolant becomes
+\begin{equation}\label{eq:fwd}
+    L_n f(x) = f_0 + \binom{s}{1}\Delta f_0 + \binom{s}{2}\Delta^2 f_0 + \dots + \binom{s}{n}\Delta^n f_0,
 \end{equation}
-This formula yields the highest precision when evaluating the polynomial near the beginning of the dataset (close to $x_0$) \cite{course5}.
+where $\binom{s}{k} = \tfrac{s(s-1)\cdots(s-k+1)}{k!}$ is the generalized binomial coefficient. This formula attains its highest precision near the beginning of the table (close to $x_0$) \cite{micula5}.
 
-\textbf{Newton's Backward Difference Formula} uses the backward difference operator $\nabla^k f_i = \nabla^{k-1} f_i - \nabla^{k-1} f_{i-1}$. Using the substitution $t = \frac{x - x_n}{h}$, the polynomial is written as \cite{course5}:
-\begin{equation}
-    L_n f(x) = f_n + \frac{t}{1!}\nabla f_n + \frac{t(t+1)}{2!}\nabla^2 f_n + \dots + \frac{t(t+1)\dots(t+n-1)}{n!}\nabla^n f_n
+\textbf{Newton's backward-difference formula} uses the backward-difference operator $\nabla^k f_i = \nabla^{k-1} f_i - \nabla^{k-1} f_{i-1}$. With the substitution $t = (x - x_n)/h$, it reads
+\begin{equation}\label{eq:bwd}
+    L_n f(x) = f_n + \frac{t}{1!}\nabla f_n + \frac{t(t+1)}{2!}\nabla^2 f_n + \dots + \frac{t(t+1)\cdots(t+n-1)}{n!}\nabla^n f_n .
 \end{equation}
-Conversely, the backward formula is preferred when evaluating points near the end of the dataset (close to $x_n$) \cite{course5}.
+Conversely, the backward formula is preferred when evaluating points near the end of the table (close to $x_n$) \cite{micula5}.
 
-\vspace{0.5cm}
-\noindent \textbf{Example: Forward Differences by Hand.}
-Using the same function $f(x) = x^3$ and equidistant nodes $x_0=0, x_1=1, x_2=2, x_3=3$, the step size is $h=1$. The forward differences are:
-\begin{itemize}
-    \item $\Delta^0 f = [0, 1, 8, 27]$
-    \item $\Delta^1 f = [1, 7, 19]$
-    \item $\Delta^2 f = [6, 12]$
-    \item $\Delta^3 f = [6]$
-\end{itemize}
+\begin{example}[Forward differences, by hand]\label{ex:fwd}
+Using again $f(x) = x^3$ on the equidistant nodes $x_0 = 0,\ x_1 = 1,\ x_2 = 2,\ x_3 = 3$ (step $h = 1$), the forward differences are
+\begin{align*}
+    \Delta^0 f &= [\,0,\ 1,\ 8,\ 27\,], &
+    \Delta^1 f &= [\,1,\ 7,\ 19\,], \\
+    \Delta^2 f &= [\,6,\ 12\,], &
+    \Delta^3 f &= [\,6\,].
+\end{align*}
+To evaluate at $x = 1.5$ we set $s = (1.5 - 0)/1 = 1.5$ and use the leading entries $\Delta^k f_0$:
+\begin{equation*}
+    P(1.5) = 0 + 1.5(1) + \frac{1.5(1.5-1)}{2}(6) + \frac{1.5(1.5-1)(1.5-2)}{6}(6) = 1.5 + 2.25 - 0.375 = 3.375,
+\end{equation*}
+in agreement with Example~\ref{ex:dd1} and with $1.5^3 = 3.375$.
+\end{example}
 
-To evaluate the polynomial at $x = 1.5$, we calculate the parameter $s = \frac{x - x_0}{h} = \frac{1.5 - 0}{1} = 1.5$. Using the forward coefficients $\Delta^k f_0$ (the first element of each difference array):
-\begin{equation}
-    P(1.5) = 0 + 1.5(1) + \frac{1.5(1.5-1)}{2}(6) + \frac{1.5(1.5-1)(1.5-2)}{6}(6)
-\end{equation}
-Simplifying the terms yields $1.5 + 2.25 - 0.375 = 3.375$, confirming the consistency of the methods.
+\begin{example}[Backward differences, by hand]\label{ex:bwd}
+For the same data, the relevant backward differences anchored at the last node are $f_3 = 27,\ \nabla f_3 = 19,\ \nabla^2 f_3 = 12,\ \nabla^3 f_3 = 6$. To evaluate near the end of the table, at $x = 2.5$, we set $t = (2.5 - 3)/1 = -0.5$ and apply \eqref{eq:bwd}:
+\begin{align*}
+    P(2.5) &= 27 + \frac{-0.5}{1}(19) + \frac{(-0.5)(0.5)}{2}(12) + \frac{(-0.5)(0.5)(1.5)}{6}(6) \\
+           &= 27 - 9.5 - 1.5 - 0.375 = 15.625 = 2.5^3 .
+\end{align*}
+\end{example}
 
 \subsection{Implementation Notes}
 
-From a software implementation perspective (e.g., in MATLAB), generating Newton's polynomial involves a two-step process. 
-
-First, the divided differences are computed and stored. This is typically done using a lower triangular matrix or a 1D array updated in-place to save memory, requiring $\mathcal{O}(n^2)$ operations. The diagonal of this conceptual matrix provides the coefficients $D_i = f[x_0, \dots, x_i]$ \cite{course5}.
-
-Second, the polynomial is evaluated at a given point $x$. To avoid redundant multiplications and reduce the evaluation cost to $\mathcal{O}(n)$ operations, the polynomial must be evaluated using a nested multiplication structure (Horner's-like scheme) \cite{course5}:
-\begin{equation}
-    N_n f(x) = D_0 + (x - x_0)\left[D_1 + (x - x_1)\left[D_2 + \dots + (x - x_{n-1})D_n\right]\right]
+From a software perspective, generating Newton's polynomial is a two-step process. First, the divided differences are computed and stored; this is typically done with a one-dimensional array updated in place to save memory, requiring $\mathcal{O}(n^2)$ operations, after which the array holds the coefficients $D_i = f[x_0, \dots, x_i]$ \cite{micula5}. Second, the polynomial is evaluated at a given point $x$. To reduce the cost of each evaluation to $\mathcal{O}(n)$ and to limit floating-point rounding, the polynomial is evaluated using a nested (Horner-like) scheme:
+\begin{equation}\label{eq:horner}
+    N_n f(x) = D_0 + (x - x_0)\Bigl[D_1 + (x - x_1)\bigl[D_2 + \dots + (x - x_{n-1})D_n\bigr]\Bigr].
 \end{equation}
-This nested form ensures computational efficiency and minimizes floating-point rounding errors during execution.
+This nested form is exactly the one implemented in the MATLAB routine of Chapter 6.
 
+% ==================================================================
+%  4. RUNGE'S PHENOMENON
+% ==================================================================
 \newpage
 \section{Runge's Phenomenon}
 
-In the context of polynomial interpolation, it is natural to assume that increasing the number of interpolation nodes---and consequently the degree of the interpolating polynomial---will yield a more accurate approximation of the underlying function. However, this intuitive assumption is false for certain functions, particularly when using equidistant nodes. This counterintuitive behavior is known as \textit{Runge's phenomenon} \cite{runge}.
+In polynomial interpolation it is natural to assume that increasing the number of nodes---and hence the degree of the interpolating polynomial---will yield a more accurate approximation of the underlying function. However, this intuitive assumption is false for certain functions, particularly when using equidistant nodes. This counterintuitive behavior is known as \emph{Runge's phenomenon} \cite{runge}.
+
+\paragraph{Historical note.} The effect was described by the German mathematician Carl David Tolm\'e Runge (1856--1927) in 1901, while he was studying the polynomial interpolation of a simple rational function on equally spaced nodes.
 
 \subsection{The Runge Function}
 
-The phenomenon was discovered by the German mathematician Carl David Tolmé Runge in 1901 when he was investigating the polynomial interpolation of the function:
-\begin{equation}
+Runge investigated the interpolation of the function
+\begin{equation}\label{eq:runge}
     f(x) = \frac{1}{1 + 25x^2}
 \end{equation}
-evaluated on the interval $[-1, 1]$. This specific mathematical expression is now commonly referred to as the \textit{Runge function} \cite{runge}.
+on the interval $[-1, 1]$. This expression is now commonly referred to as the \emph{Runge function} \cite{runge}.
 
 \subsection{Behavior with Equidistant Nodes}
 
-When interpolating the Runge function using a polynomial $P_n(x)$ of degree $n$ over a set of $n+1$ equidistant nodes, the polynomial perfectly matches the function at the given data points. However, between the nodes---especially near the boundaries of the interval, at $x = -1$ and $x = 1$---the polynomial exhibits severe and wild oscillations \cite{runge, knorrenschild}.
-
-As the number of nodes $n$ increases, rather than the polynomial converging closer to the true function $f(x)$, the magnitude of these oscillations grows unboundedly. Mathematically, the maximum error approaches infinity:
+When the Runge function is interpolated by a polynomial $P_n(x)$ of degree $n$ on $n+1$ equidistant nodes, the polynomial matches the function exactly at the data points. However, between the nodes---and especially near the boundaries $x = \pm 1$---the polynomial develops severe oscillations \cite{runge, knorrenschild}. As the number of nodes grows, instead of converging to $f$, the magnitude of these oscillations increases without bound:
 \begin{equation}
-    \lim_{n \to \infty} \left( \max_{-1 \le x \le 1} |f(x) - P_n(x)| \right) = \infty
+    \lim_{n \to \infty} \left( \max_{-1 \le x \le 1} |f(x) - P_n(x)| \right) = \infty .
 \end{equation}
+Figure~\ref{fig:progression} illustrates this divergence for $6$, $11$, and $16$ equidistant nodes: the central region is approximated reasonably well, but the oscillations near the endpoints become dramatically worse as the degree increases.
 
-This divergent behavior demonstrates that high-degree polynomial interpolation on equally spaced points is numerically unstable and generally unsuitable for practical approximation over wide intervals.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig_runge_progression.png}
+    \caption{Interpolation of the Runge function on equidistant nodes for increasing degree. The error near the endpoints grows rapidly with the number of nodes.}
+    \label{fig:progression}
+\end{figure}
 
 \subsection{The Cause of the Phenomenon}
 
-The root cause of Runge's phenomenon lies in the behavior of the interpolation error term. Recall from Theorem 2.2 that the interpolation error is proportional to the nodal polynomial $u(x) = \prod_{i=0}^n (x - x_i)$ and the $(n+1)$-th derivative of the function.
+The root cause lies in the structure of the error term. Recall from Theorem~\ref{thm:error} and the bound \eqref{eq:errorbound} that the error is controlled by the product of two factors: the nodal polynomial $u(x) = \prod_{i=0}^n (x - x_i)$, which depends only on the nodes, and the high-order derivative $f^{(n+1)}$, which depends only on the function. For equidistant nodes the amplitude of $u(x)$ becomes enormous near the edges of the interval as $n$ grows---its peaks near the endpoints exceed its values near the center by a factor that grows roughly like $2^n$. At the same time, the higher-order derivatives of the Runge function also grow rapidly \cite{runge}. The combination of these two effects causes the error to explode near the boundaries, overwhelming the good approximation achieved in the middle of the interval.
 
-For equidistant nodes, the amplitude of the nodal polynomial $u(x)$ becomes exceedingly large near the edges of the interval as $n$ grows. Furthermore, the higher-order derivatives of the Runge function grow rapidly \cite{runge}. The combination of these two factors causes the error term to explode near the boundaries, completely overshadowing the convergence achieved in the center of the interval.
+This analysis points directly to the remedy: since the troublesome factor $u(x)$ depends only on the placement of the nodes, one should abandon equidistant nodes in favor of a distribution that keeps $\max_{[-1,1]} |u(x)|$ as small as possible. That optimal distribution is the subject of the next chapter.
 
-To mitigate this catastrophic numerical instability, one must abandon equidistant nodes and select a different mathematical distribution of points that minimizes the maximum value of $u(x)$ across the entire interval.
-
+% ==================================================================
+%  5. CHEBYSHEV NODES
+% ==================================================================
 \newpage
 \section{Chebyshev Nodes}
 
-As demonstrated by Runge's phenomenon, polynomial interpolation on equally spaced nodes can lead to catastrophic divergence near the boundaries of the interval. To guarantee convergence and minimize the maximum interpolation error, the nodes must be clustered more densely near the endpoints than in the middle. The most mathematically sound and widely used distribution for this purpose is the set of \textit{Chebyshev nodes} \cite{runge, knorrenschild}.
+As Runge's phenomenon demonstrates, polynomial interpolation on equally spaced nodes can diverge catastrophically near the boundaries. To guarantee convergence and minimize the maximum interpolation error, the nodes should be clustered more densely near the endpoints than in the middle. The most mathematically sound and widely used distribution for this purpose is the set of \emph{Chebyshev nodes} \cite{runge, knorrenschild}.
 
-\subsection{Chebyshev Polynomials}
+\paragraph{Historical note.} Chebyshev polynomials are named after the Russian mathematician Pafnuty Lvovich Chebyshev (1821--1894), a founder of approximation theory, whose study of least-deviation polynomials leads directly to the optimality property below.
 
-The foundation of these nodes lies in the Chebyshev polynomials of the first kind, denoted as $T_n(x)$. For $x \in [-1, 1]$, they are defined by the trigonometric relation:
-\begin{equation}
-    T_n(x) = \cos(n \arccos x), \quad n = 0, 1, 2, \dots
+\subsection{Chebyshev Polynomials of the First Kind}
+
+The foundation of these nodes lies in the Chebyshev polynomials of the first kind, denoted $T_n(x)$. For $x \in [-1, 1]$ they are defined by the trigonometric relation
+\begin{equation}\label{eq:cheb}
+    T_n(x) = \cos\!\left(n \arccos x\right), \qquad n = 0, 1, 2, \dots
 \end{equation}
+Despite their trigonometric appearance, these are genuine polynomials: $T_0(x) = 1$, $T_1(x) = x$, and they satisfy the three-term recurrence
+\begin{equation}\label{eq:cheb-rec}
+    T_{n+1}(x) = 2x\,T_n(x) - T_{n-1}(x),
+\end{equation}
+so that $T_2(x) = 2x^2 - 1$, $T_3(x) = 4x^3 - 3x$, and so on. The leading coefficient of $T_n$ is $2^{n-1}$.
 
-These polynomials exhibit a remarkable "minimax" property: out of all monic polynomials of degree $n$, the corresponding Chebyshev polynomial has the smallest maximum absolute value on the interval $[-1, 1]$.
+These polynomials possess a remarkable \emph{minimax} property: among all \emph{monic} polynomials of degree $n$ (polynomials with leading coefficient $1$), the normalized Chebyshev polynomial $\widetilde T_n(x) = 2^{1-n} T_n(x)$ has the smallest possible maximum absolute value on $[-1,1]$, namely $2^{1-n}$. In other words, no monic degree-$n$ polynomial stays closer to zero across the whole interval.
 
 \subsection{Chebyshev Nodes of the First Kind}
 
-The Chebyshev nodes are defined as the roots of the Chebyshev polynomial $T_{n+1}(x)$. For an interpolation polynomial of degree $n$, there are $n+1$ roots on the standard interval $[-1, 1]$, given by the formula \cite{runge}:
-\begin{equation}
-    x_k = \cos\left(\frac{2k+1}{2n+2}\pi\right), \quad k = 0, 1, \dots, n
+The Chebyshev nodes are defined as the roots of $T_{n+1}(x)$. For an interpolating polynomial of degree $n$ there are $n+1$ such roots on the standard interval $[-1, 1]$, given by \cite{runge}
+\begin{equation}\label{eq:cheb-nodes}
+    x_k = \cos\!\left(\frac{2k+1}{2n+2}\,\pi\right), \qquad k = 0, 1, \dots, n .
 \end{equation}
-Geometrically, these points correspond to the $x$-coordinates of $n+1$ equally spaced points placed along the upper half of the unit circle.
+Geometrically, these are the projections onto the $x$-axis of $n+1$ equally spaced points on the upper half of the unit circle; this is exactly why they cluster near the endpoints, as shown in Figure~\ref{fig:nodes}. For a function defined on an arbitrary interval $[a, b]$, the nodes are mapped from $[-1,1]$ by the affine transformation
+\begin{equation}\label{eq:cheb-map}
+    x_k^{[a,b]} = \frac{a+b}{2} + \frac{b-a}{2}\cos\!\left(\frac{2k+1}{2n+2}\,\pi\right).
+\end{equation}
 
-When interpolating a function defined on an arbitrary interval $[a, b]$, these nodes cannot be used directly. They must be mapped from $[-1, 1]$ to $[a, b]$ using an affine transformation \cite{runge}:
-\begin{equation}
-    x_k^{[a,b]} = \frac{a+b}{2} + \frac{b-a}{2} \cos\left(\frac{2k+1}{2n+2}\pi\right)
-\end{equation}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{fig_nodes_distribution.png}
+    \caption{Distribution of $15$ equidistant nodes (squares) versus $15$ Chebyshev nodes (circles), obtained by projecting equally spaced points on the unit circle. The Chebyshev nodes cluster near the endpoints.}
+    \label{fig:nodes}
+\end{figure}
+
+\begin{example}[Chebyshev nodes, by hand]\label{ex:cheb}
+We compute the Chebyshev nodes for a quadratic interpolant ($n = 2$, hence $3$ nodes) on $[-1,1]$. From \eqref{eq:cheb-nodes} with $2n+2 = 6$,
+\[
+    x_k = \cos\!\left(\frac{(2k+1)\pi}{6}\right), \quad k = 0,1,2
+    \ \Longrightarrow\
+    x_0 = \cos\tfrac{\pi}{6} = \tfrac{\sqrt3}{2},\quad
+    x_1 = \cos\tfrac{\pi}{2} = 0,\quad
+    x_2 = \cos\tfrac{5\pi}{6} = -\tfrac{\sqrt3}{2}.
+\]
+The corresponding nodal polynomial is $u(x) = \bigl(x-\tfrac{\sqrt3}{2}\bigr)\,x\,\bigl(x+\tfrac{\sqrt3}{2}\bigr) = x^3 - \tfrac{3}{4}x$, which is exactly the normalized Chebyshev polynomial $\widetilde T_3(x) = \tfrac{1}{4}T_3(x) = \tfrac{1}{4}(4x^3 - 3x)$. Its maximum modulus on $[-1,1]$ is $\tfrac{1}{4} = \tfrac{1}{2^{n}}$ with $n = 2$, in agreement with Theorem~\ref{thm:minimax}.
+
+If instead we interpolate on the interval $[a,b] = [0,4]$, the affine map \eqref{eq:cheb-map} gives $x_k = 2 + 2\cos\!\bigl(\tfrac{(2k+1)\pi}{6}\bigr)$, namely $\{\,3.732,\ 2,\ 0.268\,\}$, again clustered toward the endpoints of $[0,4]$.
+\end{example}
 
 \subsection{Minimizing the Interpolation Error}
 
-The primary advantage of Chebyshev nodes is their direct impact on the interpolation error term. Recall from Theorem 2.2 that the error depends heavily on the nodal polynomial $u(x) = \prod_{i=0}^n (x - x_i)$. 
+The advantage of Chebyshev nodes follows directly from the error term. Recall from Theorem~\ref{thm:error} that the error depends on the nodal polynomial $u(x) = \prod_{i=0}^n (x - x_i)$, which is \emph{monic} of degree $n+1$. By the minimax property, the choice of nodes that minimizes $\max_{[-1,1]}|u(x)|$ is precisely the one that makes $u$ equal to the normalized Chebyshev polynomial $\widetilde T_{n+1}$.
 
-When the interpolation nodes $x_i$ are chosen to be the Chebyshev nodes, the maximum amplitude of $u(x)$ over the interval is optimally minimized.
-
-\vspace{0.5cm}
-\noindent \textbf{Theorem 5.1 (Minimax Property of Chebyshev Nodes).} \textit{If $x_0, \dots, x_n$ are the roots of the Chebyshev polynomial $T_{n+1}(x)$, then:}
+\begin{theorem}[Minimax property of Chebyshev nodes]\label{thm:minimax}
+If $x_0, \dots, x_n$ are the roots of the Chebyshev polynomial $T_{n+1}(x)$, then the nodal polynomial satisfies
 \begin{equation}
-    \max_{-1 \le x \le 1} \left| \prod_{i=0}^n (x - x_i) \right| = \frac{1}{2^n}
+    \max_{-1 \le x \le 1} \left| \prod_{i=0}^n (x - x_i) \right| = \frac{1}{2^{n}},
 \end{equation}
+and this is the smallest possible value of $\max_{[-1,1]}|u(x)|$ over all choices of $n+1$ nodes in $[-1,1]$.
+\end{theorem}
 
-By replacing equidistant nodes with Chebyshev nodes, the amplitude of $u(x)$ is bounded and significantly reduced. This effectively eliminates the explosive oscillations near the boundaries, thus acting as the standard cure for Runge's phenomenon \cite{knorrenschild}.
+By replacing equidistant nodes with Chebyshev nodes, the amplitude of $u(x)$ is thus reduced to its minimum, which removes the explosive oscillations near the boundaries and acts as the standard cure for Runge's phenomenon \cite{knorrenschild}. On the general interval $[a,b]$ the corresponding bound becomes
+\[
+    \|R_n f\|_\infty \le \frac{(b-a)^{\,n+1}}{2^{\,2n+1}(n+1)!}\,\|f^{(n+1)}\|_\infty .
+\]
+
+\subsection{Chebyshev Nodes of the Second Kind}
+
+A closely related family is provided by the Chebyshev polynomials of the second kind, $U_n(x) = \dfrac{\sin\bigl((n+1)\arccos x\bigr)}{\sin(\arccos x)}$, which obey the same recurrence \eqref{eq:cheb-rec} but start from $U_0(x) = 1,\ U_1(x) = 2x$. Their roots,
+\begin{equation}
+    x_k = \cos\!\left(\frac{k\pi}{n+1}\right), \qquad k = 1, \dots, n,
+\end{equation}
+together with the two endpoints $\pm 1$, give the so-called Chebyshev points of the second kind. These are widely used in practice---they are the extrema of $T_n$ and lead to especially simple barycentric weights, $w_j = (-1)^j$ for interior points and $w_j = \tfrac{1}{2}(-1)^j$ at the two endpoints \cite{micula4}. Both families cluster near the endpoints and cure Runge's phenomenon; in this thesis we use the first-kind nodes \eqref{eq:cheb-nodes} for the simulations.
 
 \subsection{Barycentric Interpolation with Chebyshev Nodes}
 
-Chebyshev nodes pair exceptionally well with the Second Barycentric Formula introduced in Chapter 2. When using equidistant nodes, the barycentric weights $w_j$ vary by exponentially large factors (approximately $2^n$), which amplifies floating-point rounding errors and causes instability \cite{course4}.
-
-Conversely, when using Chebyshev points of the first kind, the weights are much more stable. After canceling common factors independent of $j$, the barycentric weights are given by \cite{course4}:
-\begin{equation}
-    w_j = (-1)^j \sin\left(\frac{(2j+1)\pi}{2n+2}\right), \quad j = 0, \dots, n
+Chebyshev nodes pair exceptionally well with the second barycentric formula \eqref{eq:bary2}. For equidistant nodes the barycentric weights $w_j$ vary by exponentially large factors (of order roughly $2^n$), which amplifies rounding errors and causes instability \cite{micula4}. For Chebyshev points of the first kind, by contrast, after canceling common factors independent of $j$ the weights simplify to \cite{micula4}
+\begin{equation}\label{eq:cheb-weights}
+    w_j = (-1)^j \sin\!\left(\frac{(2j+1)\pi}{2n+2}\right), \qquad j = 0, \dots, n .
 \end{equation}
+Because these weights vary only by factors of $\mathcal{O}(n)$ rather than exponentially, the barycentric evaluation remains well conditioned, so small data perturbations near the center do not translate into large oscillations near the edges \cite{micula4, berrut}.
 
-Because these weights vary by factors of $\mathcal{O}(n)$ rather than exponentially, the barycentric evaluation remains highly stable, ensuring that small data errors near the center of the interval do not translate into massive oscillations near the edges \cite{course4}.
-
+% ==================================================================
+%  6. APPLICATIONS AND NUMERICAL SIMULATIONS
+% ==================================================================
 \newpage
 \section{Applications and Numerical Simulations}
 
-To demonstrate the theoretical concepts discussed in previous chapters, we implement the interpolation algorithms in MATLAB. The primary objective is to numerically simulate Runge's phenomenon and observe how transitioning from equidistant nodes to Chebyshev nodes minimizes the interpolation error. 
+To demonstrate the concepts of the previous chapters, we implement the interpolation algorithms in MATLAB. The aim is to simulate Runge's phenomenon numerically and to observe how replacing equidistant nodes with Chebyshev nodes minimizes the interpolation error. In line with the numerical objectives of this thesis, the error comparison is carried out using \emph{only} Newton's divided-difference method.
 
 \subsection{MATLAB Implementations}
 
-We first implement the Second Barycentric Formula for Lagrange interpolation. The algorithm computes the weights in $\mathcal{O}(n^2)$ and evaluates the polynomial using vectorized operations. Explicit handling of the singularity ($x = x_i$) is included to prevent division by zero.
+We first implement the second barycentric formula for Lagrange interpolation. The routine computes the weights in $\mathcal{O}(n^2)$ operations and then evaluates the polynomial; the exact-node singularity ($x = x_i$) is handled explicitly to avoid division by zero, as discussed in Chapter 2.
 
-\begin{lstlisting}[language=Matlab, frame=single, caption={Barycentric Lagrange Interpolation}]
+\begin{lstlisting}[caption={Barycentric Lagrange interpolation.}, label={lst:bary}]
 function y_eval = barycentric_interp(x_nodes, y_nodes, x_eval)
     n = length(x_nodes);
     w = ones(1, n);
-    % Compute barycentric weights
+    % Compute barycentric weights w_i = 1 / prod_{j~=i}(x_i - x_j)
     for i = 1:n
         for j = 1:n
             if i ~= j
@@ -366,36 +516,36 @@ function y_eval = barycentric_interp(x_nodes, y_nodes, x_eval)
             end
         end
     end
-    
+
     y_eval = zeros(size(x_eval));
-    % Evaluate polynomial
+    % Evaluate the second barycentric formula
     for k = 1:length(x_eval)
         exact_match = find(x_nodes == x_eval(k), 1);
         if ~isempty(exact_match)
-            y_eval(k) = y_nodes(exact_match); % Handle exact node case
+            y_eval(k) = y_nodes(exact_match);   % continuous extension at a node
         else
             num = sum((w .* y_nodes) ./ (x_eval(k) - x_nodes));
-            den = sum(w ./ (x_eval(k) - x_nodes));
+            den = sum( w             ./ (x_eval(k) - x_nodes));
             y_eval(k) = num / den;
         end
     end
 end
 \end{lstlisting}
 
-Next, we implement Newton's method using divided differences. This algorithm computes the divided difference table (storing only the necessary diagonal to save memory) and evaluates the polynomial using nested multiplication (Horner's scheme). Per the numerical objectives of this thesis, we will strictly use this Newton formulation to compare the approximation errors in the subsequent simulations.
+Next we implement Newton's method using divided differences. The routine builds the divided-difference coefficients in place (storing only the diagonal to save memory) and evaluates the polynomial through the nested Horner scheme \eqref{eq:horner}. This is the routine used for all error comparisons below.
 
-\begin{lstlisting}[language=Matlab, frame=single, caption={Newton Interpolation via Divided Differences}]
+\begin{lstlisting}[caption={Newton interpolation via divided differences.}, label={lst:newton}]
 function y_eval = newton_div_diff(x_nodes, y_nodes, x_eval)
     n = length(x_nodes);
-    D = y_nodes; % Initialize with 0th order differences
-    
-    % Compute divided differences in-place
+    D = y_nodes;                 % initialize with 0th-order differences
+
+    % Compute divided differences in place
     for i = 2:n
         for j = n:-1:i
             D(j) = (D(j) - D(j-1)) / (x_nodes(j) - x_nodes(j-i+1));
         end
     end
-    
+
     y_eval = zeros(size(x_eval));
     % Evaluate using Horner's nested scheme
     for k = 1:length(x_eval)
@@ -410,68 +560,118 @@ end
 
 \subsection{Error Comparison: Equidistant vs. Chebyshev Nodes}
 
-To visualize Runge's phenomenon, we interpolate the Runge function $f(x) = \frac{1}{1 + 25x^2}$ over the interval $[-1, 1]$. We utilize the \texttt{newton\_div\_diff} implementation and compare the maximum absolute error when using $N$ equidistant nodes versus $N$ Chebyshev nodes.
+To expose Runge's phenomenon, we interpolate the Runge function \eqref{eq:runge} on $[-1,1]$ using \texttt{newton\_div\_diff}, and compare the maximum absolute error obtained with $N$ equidistant nodes against that obtained with $N$ Chebyshev nodes given by \eqref{eq:cheb-nodes}.
 
-\begin{lstlisting}[language=Matlab, frame=single, caption={Simulation of Runge's Phenomenon}]
+\begin{lstlisting}[caption={Simulation of Runge's phenomenon and error comparison.}, label={lst:sim}]
 f = @(x) 1 ./ (1 + 25 * x.^2);
-x_eval = linspace(-1, 1, 1000); % Dense grid for evaluation
+x_eval  = linspace(-1, 1, 2000);   % dense grid for measuring the error
 y_exact = f(x_eval);
 
-N_values = [5, 11, 21];
+N_values = [5, 7, 9, 11, 13, 15, 21, 31];
 
+fprintf('  N |  Equidistant error |  Chebyshev error\n');
 for N = N_values
-    % 1. Equidistant Nodes
+    % 1. Equidistant nodes
     x_eq = linspace(-1, 1, N);
-    y_eq = f(x_eq);
-    p_eq = newton_div_diff(x_eq, y_eq, x_eval);
+    p_eq = newton_div_diff(x_eq, f(x_eq), x_eval);
     err_eq = max(abs(y_exact - p_eq));
-    
-    % 2. Chebyshev Nodes
+
+    % 2. Chebyshev nodes of the first kind
     k = 0:N-1;
-    x_cheb = cos((2*k + 1)*pi / (2*N)); 
-    y_cheb = f(x_cheb);
-    p_cheb = newton_div_diff(x_cheb, y_cheb, x_eval);
+    x_cheb = cos((2*k + 1) * pi / (2*N));
+    p_cheb = newton_div_diff(x_cheb, f(x_cheb), x_eval);
     err_cheb = max(abs(y_exact - p_cheb));
-    
-    fprintf('N = %d | Max Error (Equidistant): %.4e | Max Error (Chebyshev): %.4e\n', N, err_eq, err_cheb);
+
+    fprintf('%3d | %18.4e | %16.4e\n', N, err_eq, err_cheb);
 end
 \end{lstlisting}
 
-When executing the simulation, the divergence with equidistant nodes becomes immediately apparent. For $N = 11$, the maximum error is significant near the boundaries. When $N = 21$, the polynomial on equidistant nodes begins to wildly oscillate, and the numerical error explodes. Conversely, the Newton interpolation utilizing Chebyshev nodes exhibits continuous convergence; the maximum error strictly decreases as $N$ increases, successfully approximating the Runge function and validating the minimax error theory presented in Chapter 5.
+Running the simulation produces the maximum errors collected in Table~\ref{tab:errors}. The contrast is striking: on equidistant nodes the error grows without bound---more than three orders of magnitude between $N=5$ and $N=31$---whereas on Chebyshev nodes the error decreases monotonically by more than two orders of magnitude over the same range.
 
-\begin{figure}[h]
+\begin{table}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{runge_plot.png}
-    \caption{MATLAB simulation illustrating the divergence of equidistant nodes (Runge's phenomenon) versus the stability of Chebyshev nodes.}
-    \label{fig:runge}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{c c c c}
+        \toprule
+        $N$ (nodes) & Degree & Equidistant error & Chebyshev error \\
+        \midrule
+        $5$  & $4$  & $4.3836 \times 10^{-1}$ & $4.0202 \times 10^{-1}$ \\
+        $7$  & $6$  & $6.1695 \times 10^{-1}$ & $2.6423 \times 10^{-1}$ \\
+        $9$  & $8$  & $1.0452 \times 10^{0}$  & $1.7084 \times 10^{-1}$ \\
+        $11$ & $10$ & $1.9156 \times 10^{0}$  & $1.0915 \times 10^{-1}$ \\
+        $13$ & $12$ & $3.6633 \times 10^{0}$  & $6.9214 \times 10^{-2}$ \\
+        $15$ & $14$ & $7.1949 \times 10^{0}$  & $4.6602 \times 10^{-2}$ \\
+        $21$ & $20$ & $5.9822 \times 10^{1}$  & $1.5334 \times 10^{-2}$ \\
+        $31$ & $30$ & $2.3880 \times 10^{3}$  & $2.0616 \times 10^{-3}$ \\
+        \bottomrule
+    \end{tabular}
+    \caption{Maximum absolute interpolation error for the Runge function on $[-1,1]$, computed with Newton's divided differences. Equidistant nodes diverge; Chebyshev nodes converge.}
+    \label{tab:errors}
+\end{table}
+
+Figure~\ref{fig:compare} shows the interpolants for $N = 15$: the equidistant interpolant oscillates wildly near the endpoints, while the Chebyshev interpolant tracks the function closely across the whole interval. Figure~\ref{fig:convergence} plots the two error sequences of Table~\ref{tab:errors} on a logarithmic scale, making the qualitative difference unmistakable---one curve rises, the other falls.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{runge_plot.png}
+    \caption{Interpolation of the Runge function with $N=15$ nodes: equidistant nodes (dashed) exhibit Runge's phenomenon, whereas Chebyshev nodes (dash-dotted) remain stable.}
+    \label{fig:compare}
 \end{figure}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{fig_error_convergence.png}
+    \caption{Maximum error versus number of nodes (logarithmic scale). The error for equidistant nodes diverges, while the error for Chebyshev nodes decays steadily, confirming Theorem~\ref{thm:minimax}.}
+    \label{fig:convergence}
+\end{figure}
+
+These experiments confirm the central claim of the thesis: while high-degree interpolation on equidistant nodes is numerically unstable for the Runge function, the same Newton divided-difference procedure applied on Chebyshev nodes converges reliably, validating the minimax theory of Chapter 5.
+
+% ==================================================================
+%  7. CONCLUSIONS
+% ==================================================================
+\newpage
+\section{Conclusions}
+
+This thesis examined polynomial interpolation from both a theoretical and a computational perspective. Starting from the classical Lagrange form and its efficient barycentric reformulation, we then presented Newton's divided differences and the forward/backward finite-difference formulas, illustrating every method with worked examples computed by hand. We saw that all of these constructions produce, for a given set of nodes, the same unique interpolating polynomial; they differ only in algebraic form and in computational convenience.
+
+The central theme of the work was the contrast between two choices of nodes. Runge's phenomenon shows that increasing the degree of the interpolant on equidistant nodes can make the approximation arbitrarily worse, because the nodal polynomial $u(x)$ in the error term grows exponentially near the endpoints. Chebyshev nodes resolve this by minimizing $\max|u(x)|$ through their minimax property, restoring convergence. The MATLAB experiments of Chapter 6, carried out exclusively with Newton's divided differences, confirmed this quantitatively: for the Runge function the equidistant error grew beyond $10^3$ while the Chebyshev error fell below $10^{-3}$ over the same range of node counts.
+
+A natural continuation of this work would be to study other remedies for the instability of high-degree interpolation, such as piecewise polynomial (spline) interpolation, and to extend the comparison to other test functions and to the conditioning of the barycentric weights.
+
+% ==================================================================
+%  BIBLIOGRAPHY (alphabetical by first author)
+% ==================================================================
 \newpage
 \begin{thebibliography}{9}
 
 \bibitem{barwolff}
-Bärwolff, G.: \textit{Numerik für Ingenieure, Physiker und Informatiker}, 3. Auflage, 2006.
+B\"arwolff, G.: \textit{Numerik f\"ur Ingenieure, Physiker und Informatiker}, 3.\ Auflage, Spektrum Akademischer Verlag, 2006.
 
-\bibitem{course4}
-Prof. Micula Sanda, \textit{Course 4: Approximation of Functions}, Babeș-Bolyai University.
-
-\bibitem{course5}
-Prof. Micula Sanda, \textit{Course 5: Approximation of Functions}, Babeș-Bolyai University.
-
-\bibitem{heath}
-Heath, M.T.: \textit{Scientific Computing: An Introductory Survey}, International edition, 1979.
-
-\bibitem{isaacson}
-Isaacson, E., Keller, H.B.: \textit{Analysis of Numerical Methods}, Dover Edition, 1994.
-
-\bibitem{knorrenschild}
-Knorrenschild, M.: \textit{Numerische Mathematik: Eine beispielorientierte Einführung}, 5. aktualisierte Auflage, 2012.
+\bibitem{berrut}
+Berrut, J.-P., Trefethen, L.N.: \textit{Barycentric Lagrange Interpolation}, SIAM Review, 46(3), 2004, 501--517.
 
 \bibitem{runge}
-Cosgun, A., Nies, J.: \textit{Exploring Runge's phenomenon}, Université du Luxembourg, 2022.
+Cosgun, A., Nies, J.: \textit{Exploring Runge's Phenomenon}, Experimental Mathematics Lab, Universit\'e du Luxembourg, 2022.
+
+\bibitem{heath}
+Heath, M.T.: \textit{Scientific Computing: An Introductory Survey}, International edition, McGraw-Hill, 1997.
+
+\bibitem{isaacson}
+Isaacson, E., Keller, H.B.: \textit{Analysis of Numerical Methods}, Dover edition, 1994.
+
+\bibitem{knorrenschild}
+Knorrenschild, M.: \textit{Numerische Mathematik: Eine beispielorientierte Einf\"uhrung}, 5.\ aktualisierte Auflage, Hanser, 2012.
+
+\bibitem{micula4}
+Micula, S.: \textit{Course 4: Approximation of Functions} (lecture notes on numerical analysis), Babe\c{s}-Bolyai University, Cluj-Napoca.
+
+\bibitem{micula5}
+Micula, S.: \textit{Course 5: Approximation of Functions} (lecture notes on numerical analysis), Babe\c{s}-Bolyai University, Cluj-Napoca.
 
 \bibitem{schatzman}
-Schatzman, M.: \textit{Numerical Analysis: a mathematical introduction}, 2002.
+Schatzman, M.: \textit{Numerical Analysis: A Mathematical Introduction}, Oxford University Press, 2002.
 
 \end{thebibliography}
+
 \end{document}
