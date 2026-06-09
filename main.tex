@@ -170,7 +170,7 @@ A first, naive approach is to look for the polynomial directly in the monomial b
     =
     \begin{pmatrix} y_0 \\ y_1 \\ \vdots \\ y_n \end{pmatrix},
 \end{equation}
-whose coefficient matrix is the \emph{Vandermonde matrix} \cite{runge}. Its determinant equals $\prod_{0 \le i < j \le n}(x_j - x_i)$, which is nonzero precisely because the nodes are distinct; the system therefore has a unique solution. This already establishes that an interpolating polynomial of degree at most $n$ exists and is unique. In practice, however, the Vandermonde system is notoriously ill-conditioned, and solving it costs $\mathcal{O}(n^3)$ operations. The Lagrange and Newton forms presented in this chapter avoid building this matrix altogether, which is why they are preferred. The same existence and uniqueness result is restated, in the form most convenient for what follows, below.
+whose coefficient matrix is the \emph{Vandermonde matrix} \cite{heath}. Its determinant equals $\prod_{0 \le i < j \le n}(x_j - x_i)$, which is nonzero precisely because the nodes are distinct; the system therefore has a unique solution. This already establishes that an interpolating polynomial of degree at most $n$ exists and is unique. In practice, however, the Vandermonde system is notoriously ill-conditioned\cite{barwolff}, and solving it costs $\mathcal{O}(n^3)$ operations. The Lagrange and Newton forms presented in this chapter avoid building this matrix altogether, which is why they are preferred. The same existence and uniqueness result is restated, in the form most convenient for what follows, below.
 
 \begin{theorem}[Existence and Uniqueness]\label{thm:exist}
 There is a unique polynomial $L_n f$ of degree at most $n$ satisfying the interpolation conditions \eqref{eq:interp-cond}. This polynomial can be written as
@@ -247,7 +247,7 @@ It is natural to expect that taking more and more interpolation nodes will drive
 Let $f:[a,b]\to\mathbb{R}$ be continuous. Then for every $\varepsilon > 0$ there exists a polynomial $p$ such that $\displaystyle\max_{x\in[a,b]} |f(x) - p(x)| < \varepsilon$.
 \end{theorem}
 
-Weierstrass's theorem guarantees that \emph{some} polynomial approximates $f$ as closely as desired, but it does not say how to find it, and in particular it does \emph{not} say that the interpolant at a given set of nodes will do so. The next result, due to Faber and Bernstein, shows that no single choice of nodes works for every continuous function.
+Weierstrass's theorem guarantees that \emph{some} polynomial approximates $f$ as closely as desired, but it does not say how to find it, and in particular it does \emph{not} say that the interpolant at a given set of nodes will do so. The next result, due to Faber and Bernstein, shows that no single choice of nodes works for every continuous function.\cite{schatzman}
 
 \begin{theorem}[Faber]\label{thm:faber}
 For every prescribed triangular array of interpolation nodes in $[a,b]$, there exists a continuous function $f \in C[a,b]$ whose sequence of interpolating polynomials does not converge uniformly to $f$ on $[a,b]$ \cite{micula4}.
@@ -323,7 +323,7 @@ While the Lagrange form elegantly proves the existence and uniqueness of the int
 
 \subsection{Divided Differences}
 
-Newton's interpolation polynomial relies on the concept of \emph{divided differences}. Given $n+1$ pairs $(x_k, y_k)$ for $k = 0, \dots, n$, the divided differences are defined recursively as follows \cite{runge, micula5}:
+Newton's interpolation polynomial relies on the concept of \emph{divided differences}. Given $n+1$ pairs $(x_k, y_k)$ for $k = 0, \dots, n$, the divided differences are defined recursively as follows \cite{isaacson, micula5}:
 \begin{itemize}
     \item \textbf{Zeroth order:} $f[x_k] = f(x_k) = y_k$;
     \item \textbf{First order:} $\displaystyle f[x_k, x_{k+1}] = \frac{f[x_{k+1}] - f[x_k]}{x_{k+1} - x_k}$;
@@ -768,7 +768,7 @@ To show that the advantage of Chebyshev nodes is not specific to the Runge funct
         $31$ & $30$ & $3.1578 \times 10^{4}$  & $1.9272 \times 10^{-2}$ \\
         \bottomrule
     \end{tabular}
-    \caption{Maximum absolute error for $f(x)=|x|$ on $[-1,1]$, computed with Newton's divided differences. The equidistant error grows erratically and without bound (Bernstein's divergence), while the Chebyshev error decreases steadily.}
+    \caption{Maximum absolute error for $f(x)=|x|$ on $[-1,1]$, computed with Newton's divided differences. The equidistant error grows erratically and without bound (Bernstein's divergence), while the Chebyshev error decreases overall (with mild even/odd oscillations).}
     \label{tab:bernstein}
 \end{table}
 
@@ -788,7 +788,7 @@ Regarding efficiency, both algorithms split naturally into a setup phase and an 
 
 This thesis examined polynomial interpolation from both a theoretical and a computational perspective. Starting from the classical Lagrange form and its efficient barycentric reformulation, we then presented Newton's divided differences and the forward/backward finite-difference formulas, illustrating every method with worked examples computed by hand. We saw that all of these constructions produce, for a given set of nodes, the same unique interpolating polynomial; they differ only in algebraic form and in computational convenience.
 
-The central theme of the work was the contrast between two choices of nodes. Runge's phenomenon shows that increasing the degree of the interpolant on equidistant nodes can make the approximation arbitrarily worse, because the nodal polynomial $u(x)$ in the error term grows exponentially near the endpoints. Chebyshev nodes resolve this by minimizing $\max|u(x)|$ through their minimax property, restoring convergence. The MATLAB experiments of Chapter 6, carried out exclusively with Newton's divided differences, confirmed this quantitatively: for the Runge function the equidistant error grew beyond $10^3$ while the Chebyshev error fell below $10^{-3}$ over the same range of node counts.
+The central theme of the work was the contrast between two choices of nodes. Runge's phenomenon shows that increasing the degree of the interpolant on equidistant nodes can make the approximation arbitrarily worse, because the nodal polynomial $u(x)$ in the error term grows exponentially near the endpoints. Chebyshev nodes resolve this by minimizing $\max|u(x)|$ through their minimax property, restoring convergence. The MATLAB experiments of Chapter 6, carried out exclusively with Newton's divided differences, confirmed this quantitatively: for the Runge function the equidistant error grew beyond $10^3$ while the Chebyshev error fell to the order of $10^{-3}$ over the same range of node counts.
 
 A natural continuation of this work would be to study other remedies for the instability of high-degree interpolation, such as piecewise polynomial (spline) interpolation, and to extend the comparison to other test functions and to the conditioning of the barycentric weights.
 
