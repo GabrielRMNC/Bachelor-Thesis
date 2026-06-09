@@ -77,7 +77,7 @@
 
         \vspace*{6cm}
 
-        {\LARGE \textbf{DIPLOMA THESIS}} \\[2cm]
+        {\LARGE \textbf{BACHELOR'S THESIS}} \\[2cm]
 
         {\Large \textbf{Function Interpolation}}
     \end{center}
@@ -132,6 +132,13 @@ Chapter 2 introduces Lagrange interpolation, covering both its classical theoret
 
 \paragraph{Note on the use of AI tools.} In accordance with the Faculty's guidelines, the author declares that generative AI tools were used in a limited and supervised manner during the preparation of this thesis: to improve the readability and phrasing of the text, to assist with structuring and debugging the MATLAB code, and to help cross-check numerical results and worked examples. All the mathematical content, the selection and verification of the results, and the final formulations are the responsibility of the author; every theorem, formula, and numerical value reported here was independently verified against the cited bibliography.
 
+\subsection{Historical Background and Applications}
+
+The idea of interpolating tabulated values is ancient---it underlies the astronomical tables of antiquity---but its modern theory begins in the seventeenth and eighteenth centuries with Isaac Newton, who introduced divided and finite differences, and with Joseph-Louis Lagrange, whose basis-polynomial formula gave the interpolant a closed form. A deeper question---whether a continuous function can be approximated arbitrarily well by polynomials---was answered affirmatively by Karl Weierstrass in 1885. However, Weierstrass's theorem only guarantees the \emph{existence} of a good approximating polynomial; it says nothing about whether the specific polynomial obtained by interpolating at a prescribed set of nodes will converge. That this convergence can fail was made dramatically clear by Carl Runge in 1901 and, in full generality, by the theorems of Faber and Bernstein in the following decade. The remedy, rooted in the approximation theory of Pafnuty Chebyshev, is the subject of this thesis.
+
+Interpolation is far more than a curiosity. It is the foundation of numerical integration and differentiation (where an interpolant replaces the integrand or the function to be differentiated), of multistep methods for ordinary differential equations, and of computer-aided geometric design and computer graphics, where smooth curves and surfaces are reconstructed from a finite set of control points. In each of these settings the accuracy of the final result is inherited directly from the accuracy of the underlying interpolation, which makes the choice of nodes---the central question of this work---a matter of genuine practical importance.
+
+
 % ==================================================================
 %  2. LAGRANGE INTERPOLATION
 % ==================================================================
@@ -150,6 +157,20 @@ Given $n+1$ distinct points, called \emph{nodes}, $x_i \in [a,b]$ for $i = 0, \d
     P(x_i) = f(x_i), \qquad i = 0, \dots, n .
 \end{equation}
 \end{definition}
+
+A first, naive approach is to look for the polynomial directly in the monomial basis, $P(x) = a_0 + a_1 x + \dots + a_n x^n$. Imposing the interpolation conditions \eqref{eq:interp-cond} gives a linear system for the unknown coefficients,
+\begin{equation}\label{eq:vandermonde}
+    \begin{pmatrix}
+        1 & x_0 & \cdots & x_0^{\,n} \\
+        1 & x_1 & \cdots & x_1^{\,n} \\
+        \vdots & \vdots & & \vdots \\
+        1 & x_n & \cdots & x_n^{\,n}
+    \end{pmatrix}
+    \begin{pmatrix} a_0 \\ a_1 \\ \vdots \\ a_n \end{pmatrix}
+    =
+    \begin{pmatrix} y_0 \\ y_1 \\ \vdots \\ y_n \end{pmatrix},
+\end{equation}
+whose coefficient matrix is the \emph{Vandermonde matrix} \cite{runge}. Its determinant equals $\prod_{0 \le i < j \le n}(x_j - x_i)$, which is nonzero precisely because the nodes are distinct; the system therefore has a unique solution. This already establishes that an interpolating polynomial of degree at most $n$ exists and is unique. In practice, however, the Vandermonde system is notoriously ill-conditioned, and solving it costs $\mathcal{O}(n^3)$ operations. The Lagrange and Newton forms presented in this chapter avoid building this matrix altogether, which is why they are preferred. The same existence and uniqueness result is restated, in the form most convenient for what follows, below.
 
 \begin{theorem}[Existence and Uniqueness]\label{thm:exist}
 There is a unique polynomial $L_n f$ of degree at most $n$ satisfying the interpolation conditions \eqref{eq:interp-cond}. This polynomial can be written as
@@ -217,6 +238,22 @@ A useful consequence of \eqref{eq:remainder} is the uniform bound
     M_{n+1} = \sup_{t\in[a,b]} \bigl|f^{(n+1)}(t)\bigr| .
 \end{equation}
 The two factors on the right-hand side are essentially independent: the first depends only on the placement of the nodes through $u(x)$, while the second depends only on the function $f$. This separation will be the key to understanding both Runge's phenomenon (Chapter 4) and its cure through Chebyshev nodes (Chapter 5).
+
+\subsection{Approximation-Theoretic Background}
+
+It is natural to expect that taking more and more interpolation nodes will drive the error to zero. The following two classical results show that the situation is more subtle, and they motivate the central problem of this thesis.
+
+\begin{theorem}[Weierstrass Approximation Theorem]\label{thm:weierstrass}
+Let $f:[a,b]\to\mathbb{R}$ be continuous. Then for every $\varepsilon > 0$ there exists a polynomial $p$ such that $\displaystyle\max_{x\in[a,b]} |f(x) - p(x)| < \varepsilon$.
+\end{theorem}
+
+Weierstrass's theorem guarantees that \emph{some} polynomial approximates $f$ as closely as desired, but it does not say how to find it, and in particular it does \emph{not} say that the interpolant at a given set of nodes will do so. The next result, due to Faber and Bernstein, shows that no single choice of nodes works for every continuous function.
+
+\begin{theorem}[Faber]\label{thm:faber}
+For every prescribed triangular array of interpolation nodes in $[a,b]$, there exists a continuous function $f \in C[a,b]$ whose sequence of interpolating polynomials does not converge uniformly to $f$ on $[a,b]$ \cite{micula4}.
+\end{theorem}
+
+A concrete illustration is Bernstein's example $f(x) = |x|$ on $[-1,1]$: with equidistant nodes the interpolation error tends to infinity at every point except $x = -1, 0, 1$ \cite{micula4}. These results explain why the choice of nodes is decisive and foreshadow Runge's phenomenon, studied in Chapter 4.
 
 \subsection{Barycentric Interpolation}
 
@@ -711,6 +748,31 @@ Figure~\ref{fig:compare} shows the interpolants for $N = 15$: the equidistant in
 \end{figure}
 
 These experiments confirm the central claim of the thesis: while high-degree interpolation on equidistant nodes is numerically unstable for the Runge function, the same Newton divided-difference procedure applied on Chebyshev nodes converges reliably, validating the minimax theory of Chapter 5.
+
+\subsection{A Second Test Function: the Bernstein Example}
+
+To show that the advantage of Chebyshev nodes is not specific to the Runge function, we repeat the experiment for the Bernstein example $f(x) = |x|$ on $[-1,1]$. The only change to the simulation code is the definition of the target function, \texttt{f = @(x) abs(x);}\ ; the \texttt{newton\_div\_diff} routine is used exactly as before. The resulting maximum errors are reported in Table~\ref{tab:bernstein}.
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{c c c c}
+        \toprule
+        $N$ (nodes) & Degree & Equidistant error & Chebyshev error \\
+        \midrule
+        $6$  & $5$  & $1.4062 \times 10^{-1}$ & $1.7255 \times 10^{-1}$ \\
+        $11$ & $10$ & $6.6355 \times 10^{-1}$ & $5.4622 \times 10^{-2}$ \\
+        $16$ & $15$ & $5.0540 \times 10^{-1}$ & $6.2802 \times 10^{-2}$ \\
+        $21$ & $20$ & $9.5189 \times 10^{1}$  & $2.8476 \times 10^{-2}$ \\
+        $26$ & $25$ & $7.0580 \times 10^{1}$  & $3.8532 \times 10^{-2}$ \\
+        $31$ & $30$ & $3.1578 \times 10^{4}$  & $1.9272 \times 10^{-2}$ \\
+        \bottomrule
+    \end{tabular}
+    \caption{Maximum absolute error for $f(x)=|x|$ on $[-1,1]$, computed with Newton's divided differences. The equidistant error grows erratically and without bound (Bernstein's divergence), while the Chebyshev error decreases steadily.}
+    \label{tab:bernstein}
+\end{table}
+
+The pattern is the same as for the Runge function: the equidistant error ultimately explodes, reaching order $10^{4}$ at $N=31$, whereas the Chebyshev error decreases. There is, however, an instructive difference. For $|x|$ the Chebyshev error decreases only slowly---roughly like $1/n$, with mild oscillations between even and odd $N$---rather than geometrically. This is consistent with the error bound \eqref{eq:errorbound}: because $|x|$ is not differentiable at the origin, the factor $M_{n+1} = \sup |f^{(n+1)}|$ is not controlled, so even the optimal placement of nodes cannot deliver fast convergence. Chebyshev nodes remove the catastrophic instability caused by the nodal polynomial $u(x)$, but they cannot compensate for a lack of smoothness in $f$ itself.
 
 \subsection{Verification and Computational Cost}
 
