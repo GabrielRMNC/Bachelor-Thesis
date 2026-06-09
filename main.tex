@@ -170,7 +170,7 @@ A first, naive approach is to look for the polynomial directly in the monomial b
     =
     \begin{pmatrix} y_0 \\ y_1 \\ \vdots \\ y_n \end{pmatrix},
 \end{equation}
-whose coefficient matrix is the \emph{Vandermonde matrix} \cite{heath}. Its determinant equals $\prod_{0 \le i < j \le n}(x_j - x_i)$, which is nonzero precisely because the nodes are distinct; the system therefore has a unique solution. This already establishes that an interpolating polynomial of degree at most $n$ exists and is unique. In practice, however, the Vandermonde system is notoriously ill-conditioned\cite{barwolff}, and solving it costs $\mathcal{O}(n^3)$ operations. The Lagrange and Newton forms presented in this chapter avoid building this matrix altogether, which is why they are preferred. The same existence and uniqueness result is restated, in the form most convenient for what follows, below.
+whose coefficient matrix is the \emph{Vandermonde matrix} \cite{heath}. Its determinant equals $\prod_{0 \le i < j \le n}(x_j - x_i)$, which is nonzero precisely because the nodes are distinct; the system therefore has a unique solution. This already establishes that an interpolating polynomial of degree at most $n$ exists and is unique. In practice, however, the Vandermonde system is notoriously ill-conditioned~\cite{barwolff}, and solving it costs $\mathcal{O}(n^3)$ operations. The Lagrange and Newton forms presented in this chapter avoid building this matrix altogether, which is why they are preferred. The same existence and uniqueness result is restated, in the form most convenient for what follows, below.
 
 \begin{theorem}[Existence and Uniqueness]\label{thm:exist}
 There is a unique polynomial $L_n f$ of degree at most $n$ satisfying the interpolation conditions \eqref{eq:interp-cond}. This polynomial can be written as
@@ -247,7 +247,7 @@ It is natural to expect that taking more and more interpolation nodes will drive
 Let $f:[a,b]\to\mathbb{R}$ be continuous. Then for every $\varepsilon > 0$ there exists a polynomial $p$ such that $\displaystyle\max_{x\in[a,b]} |f(x) - p(x)| < \varepsilon$.
 \end{theorem}
 
-Weierstrass's theorem guarantees that \emph{some} polynomial approximates $f$ as closely as desired, but it does not say how to find it, and in particular it does \emph{not} say that the interpolant at a given set of nodes will do so. The next result, due to Faber and Bernstein, shows that no single choice of nodes works for every continuous function.\cite{schatzman}
+Weierstrass's theorem guarantees that \emph{some} polynomial approximates $f$ as closely as desired, but it does not say how to find it, and in particular it does \emph{not} say that the interpolant at a given set of nodes will do so. The next result, due to Faber and Bernstein, shows that no single choice of nodes works for every continuous function \cite{schatzman}.
 
 \begin{theorem}[Faber]\label{thm:faber}
 For every prescribed triangular array of interpolation nodes in $[a,b]$, there exists a continuous function $f \in C[a,b]$ whose sequence of interpolating polynomials does not converge uniformly to $f$ on $[a,b]$ \cite{micula4}.
